@@ -1,0 +1,133 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: sans-serif;
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+#panel-izquierdo {
+  width: 450px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  border-right: 1px solid #e0e0e0;
+  overflow-y: auto;
+}
+
+.form-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+}
+
+.form-group input {
+  width: 70px;
+  padding: 4px;
+  font-size: 14px;
+}
+
+.form-group button {
+  padding: 4px 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+#contenedor-manual {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px dashed #bbb;
+  border-radius: 4px;
+  background-color: #fafafa;
+}
+
+#panel-derecho {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #ffffff;
+}
+
+svg {
+  width: 100%;
+  height: 100%;
+}
+
+.arista-linea {
+  stroke-width: 2;
+  fill: none;
+}
+
+.peso-arista {
+  font-size: 13px;
+  font-weight: bold;
+  fill: #111111;
+  text-anchor: middle;
+  dominant-baseline: central;
+  paint-order: stroke fill;
+  stroke: #ffffff;
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  user-select: none;
+  pointer-events: none;
+}
+
+.nodo text {
+  font-size: 14px;
+  font-weight: bold;
+  fill: #ffffff;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+  user-select: none;
+}
+
+#overlay-advertencia {
+  display: none;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+}
+
+#caja-advertencia {
+  background-color: #ffffff;
+  border: 2px solid #000000;
+  padding: 20px;
+  width: 400px;
+  max-width: 90%;
+  text-align: center;
+}
+
+#caja-advertencia h3 {
+  margin-bottom: 12px;
+  color: #000000;
+}
+
+#caja-advertencia p {
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #333333;
+}
+
+#caja-advertencia button {
+  padding: 6px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
