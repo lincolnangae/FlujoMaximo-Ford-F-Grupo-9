@@ -54,6 +54,12 @@ body {
   background-color: #fafafa;
 }
 
+#contenedor-fuente-sumidero {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 #panel-derecho {
   flex: 1;
   display: flex;

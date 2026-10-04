@@ -20,8 +20,14 @@ const inputNodoFinal = document.getElementById('num-nodo-final');
 const inputPeso = document.getElementById('num-peso');
 const btnConectar = document.getElementById('btn-conectar');
 
+const inputFuente = document.getElementById('num-fuente');
+const inputSumidero = document.getElementById('num-sumidero');
+const btnAceptarFuenteSumidero = document.getElementById('btn-aceptar-fuente-sumidero');
+
 let posicionesNodos = [];
 let aristas = [];
+let nodoFuente = null;
+let nodoSumidero = null;
 
 // Determina el color y nombre de estilo de una arista según su nivel de flujo y capacidad.
 function obtenerColorArista(flujo, peso) {
@@ -63,6 +69,12 @@ function generarRed() {
 
   inputNodoInicial.max = n;
   inputNodoFinal.max = n;
+  inputFuente.max = n;
+  inputSumidero.max = n;
+  nodoFuente = null;
+  nodoSumidero = null;
+  inputFuente.value = '';
+  inputSumidero.value = '';
   if (Number(inputNodoInicial.value) > n) inputNodoInicial.value = 1;
   if (Number(inputNodoFinal.value) > n) inputNodoFinal.value = n;
 
@@ -161,11 +173,18 @@ function dibujarRed() {
     grupo.setAttribute('class', 'nodo');
     grupo.setAttribute('id', `nodo-${idNodo}`);
 
+    let color = COLORES[0];
+    if (idNodo === nodoFuente) {
+      color = COLORES[1];
+    } else if (idNodo === nodoSumidero) {
+      color = COLORES[2];
+    }
+
     const circulo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circulo.setAttribute('cx', pos.x);
     circulo.setAttribute('cy', pos.y);
     circulo.setAttribute('r', radioNodo);
-    circulo.setAttribute('fill', COLORES[0]);
+    circulo.setAttribute('fill', color);
 
     const texto = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     texto.setAttribute('x', pos.x);
@@ -251,8 +270,114 @@ function generarAristasAleatorias() {
   dibujarRed();
 }
 
+// Detecta si existen ciclos dirigidos en el grafo mediante búsqueda en profundidad (DFS).
+function tieneCiclos() {
+  const n = posicionesNodos.length;
+  const adj = Array.from({ length: n + 1 }, () => []);
+  aristas.forEach(a => {
+    if (a.origen <= n && a.destino <= n) {
+      adj[a.origen].push(a.destino);
+    }
+  });
+
+  const estado = Array(n + 1).fill(0);
+  function dfs(u) {
+    estado[u] = 1;
+    for (const v of adj[u]) {
+      if (estado[v] === 1) return true;
+      if (estado[v] === 0 && dfs(v)) return true;
+    }
+    estado[u] = 2;
+    return false;
+  }
+
+  for (let i = 1; i <= n; i++) {
+    if (estado[i] === 0) {
+      if (dfs(i)) return true;
+    }
+  }
+  return false;
+}
+
+// Localiza un camino aumentante con capacidad residual disponible entre fuente y sumidero usando BFS.
+function buscarCaminoAumentanteBFS() {
+  const n = posicionesNodos.length;
+  const parent = Array(n + 1).fill(null);
+  const queue = [nodoFuente];
+  const visitado = Array(n + 1).fill(false);
+  visitado[nodoFuente] = true;
+
+  while (queue.length > 0) {
+    const u = queue.shift();
+    if (u === nodoSumidero) break;
+
+    for (const a of aristas) {
+      if (a.origen === u && !visitado[a.destino] && (a.peso - a.flujo > 0)) {
+        visitado[a.destino] = true;
+        parent[a.destino] = u;
+        queue.push(a.destino);
+      }
+    }
+  }
+
+  if (!visitado[nodoSumidero]) return null;
+
+  const camino = [];
+  let curr = nodoSumidero;
+  while (curr !== nodoFuente) {
+    camino.unshift(curr);
+    curr = parent[curr];
+  }
+  camino.unshift(nodoFuente);
+  return camino;
+}
+
+// Configura los nodos fuente y sumidero tras validar que no existan ciclos y que haya al menos un camino aumentante.
+function aplicarFuenteSumidero() {
+  const n = posicionesNodos.length;
+  const fuenteVal = inputFuente.value.trim();
+  const sumideroVal = inputSumidero.value.trim();
+
+  const fuente = Number(fuenteVal);
+  const sumidero = Number(sumideroVal);
+
+  if (fuenteVal === '' || isNaN(fuente) || !Number.isInteger(fuente) || fuente < 1 || fuente > n) {
+    mostrarAdvertencia(`El nodo fuente debe ser un número entero entre 1 y ${n}.`);
+    return;
+  }
+  if (sumideroVal === '' || isNaN(sumidero) || !Number.isInteger(sumidero) || sumidero < 1 || sumidero > n) {
+    mostrarAdvertencia(`El nodo sumidero debe ser un número entero entre 1 y ${n}.`);
+    return;
+  }
+
+  if (fuente === sumidero) {
+    mostrarAdvertencia('El nodo fuente y el sumidero no pueden ser el mismo.');
+    return;
+  }
+
+  if (tieneCiclos()) {
+    mostrarAdvertencia('El grafo contiene ciclos. Por favor, corrige la estructura de las aristas antes de continuar.');
+    return;
+  }
+
+  nodoFuente = fuente;
+  nodoSumidero = sumidero;
+
+  aristas.forEach(a => a.flujo = 0);
+
+  const existeCamino = buscarCaminoAumentanteBFS();
+  if (!existeCamino) {
+    mostrarAdvertencia('No existe ningún camino posible entre la fuente y el sumidero seleccionados.');
+    dibujarRed();
+    return;
+  }
+
+  dibujarRed();
+}
+
 btnConectar.addEventListener('click', conectarArista);
 btnAleatorio.addEventListener('click', generarAristasAleatorias);
+btnAceptarFuenteSumidero.addEventListener('click', aplicarFuenteSumidero);
 btnAplicar.addEventListener('click', generarRed);
 
 window.addEventListener('DOMContentLoaded', () => {
