@@ -20,7 +20,14 @@ Proyecto grupal para la visualización, experimentación y resolución de proble
 ### Fase 3: Configuración de Fuente, Sumidero y Algoritmos de Grafos (DFS / BFS)
 - **Definición de Nodos Clave:** Asignación visual de nodo Fuente (verde) y nodo Sumidero (rojo).
 - **Detección de Ciclos (DFS):** Búsqueda en profundidad con seguimiento de 3 estados para evitar ciclos dirigidos en la red.
-- **Validación de Conectividad Residual (BFS):** Búsqueda en anchura (*Breadth-First Search*) para comprobar la existencia de caminos aumentantes con capacidad residual disponible (`peso - flujo > 0`).
+- **Validación de Conectividad Residual (BFS):** Búsqueda en anchura para comprobar la existencia de caminos aumentantes con capacidad residual positiva.
+
+### Fase 4: Ejecución Interactiva del Algoritmo de Ford-Fulkerson
+- **Selección Interactiva de Caminos:** Trazado de rutas aumentantes haciendo clic directamente sobre los nodos en el SVG (resaltados en morado).
+- **Verificación de Rutas:** Validación de camino completo desde la Fuente al Sumidero y comprobación de capacidad residual disponible en cada tramo.
+- **Cálculo de Cuello de Botella:** Desafío interactivo para ingresar la capacidad mínima del camino seleccionado y actualización acumulada del Flujo Total.
+- **Semáforo Dinámico de Saturación:** Coloreado de aristas según el nivel de utilización (negro = 0%, verde ≤ 30%, naranja < 100%, rojo = 100% saturado).
+- **Finalización y Reporte de Resultados:** Detección automática de terminación mediante BFS cuando no quedan más caminos residuales, con desglose detallado de todos los caminos utilizados.
 
 ## 🛠️ Tecnologías
 - HTML5

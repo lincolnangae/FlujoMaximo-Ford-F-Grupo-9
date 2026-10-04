@@ -59,6 +59,42 @@
         <button id="btn-aceptar-fuente-sumidero">Aceptar</button>
       </div>
     </div>
+
+    <div id="seccion-ford" style="display: none; flex-direction: column; gap: 10px;">
+      <h3>Algoritmo de Ford-Fulkerson</h3>
+      <p id="instruccion-ford" style="font-size: 14px;">
+        Halla un camino de Fuente hacia Sumidero (presiona click sobre los nodos)
+      </p>
+
+      <div class="form-group">
+        <label>Camino:</label>
+        <span id="texto-camino">Ninguno</span>
+      </div>
+
+      <div class="form-group">
+        <button id="btn-verificar-camino" disabled>Verificar</button>
+        <button id="btn-limpiar-camino">Limpiar</button>
+      </div>
+
+      <div id="div-pregunta-capacidad" style="display: none;">
+        <div class="form-group">
+          <label for="input-capacidad-camino">Capacidad:</label>
+          <input type="number" id="input-capacidad-camino" min="1">
+          <button id="btn-confirmar-capacidad">Confirmar</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Flujo Total:</label>
+        <span id="val-flujo-total">0</span>
+      </div>
+
+      <div id="panel-final-flujo" style="display: none;">
+        <h4>¡Flujo Máximo Alcanzado!</h4>
+        <p id="texto-resumen-final" style="font-size: 14px; margin: 4px 0;"></p>
+        <div id="lista-caminos-recorridos" style="font-size: 14px; max-height: 120px; overflow-y: auto;"></div>
+      </div>
+    </div>
   </aside>
 
   <main id="panel-derecho">

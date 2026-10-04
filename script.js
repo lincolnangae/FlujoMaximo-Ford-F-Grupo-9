@@ -24,10 +24,30 @@ const inputFuente = document.getElementById('num-fuente');
 const inputSumidero = document.getElementById('num-sumidero');
 const btnAceptarFuenteSumidero = document.getElementById('btn-aceptar-fuente-sumidero');
 
+const COLOR_MORADO = '#8e24aa';
+
+const seccionFord = document.getElementById('seccion-ford');
+const instruccionFord = document.getElementById('instruccion-ford');
+const textoCamino = document.getElementById('texto-camino');
+const btnVerificarCamino = document.getElementById('btn-verificar-camino');
+const btnLimpiarCamino = document.getElementById('btn-limpiar-camino');
+const divPreguntaCapacidad = document.getElementById('div-pregunta-capacidad');
+const inputCapacidadCamino = document.getElementById('input-capacidad-camino');
+const btnConfirmarCapacidad = document.getElementById('btn-confirmar-capacidad');
+const valFlujoTotal = document.getElementById('val-flujo-total');
+const panelFinalFlujo = document.getElementById('panel-final-flujo');
+const textoResumenFinal = document.getElementById('texto-resumen-final');
+const listaCaminosRecorridos = document.getElementById('lista-caminos-recorridos');
+
 let posicionesNodos = [];
 let aristas = [];
 let nodoFuente = null;
 let nodoSumidero = null;
+
+let caminoSeleccionado = [];
+let flujoTotal = 0;
+let historialRecorridos = [];
+let algoritmoTerminado = false;
 
 // Determina el color y nombre de estilo de una arista según su nivel de flujo y capacidad.
 function obtenerColorArista(flujo, peso) {
@@ -80,6 +100,11 @@ function generarRed() {
 
   aristas = [];
   posicionesNodos = [];
+  caminoSeleccionado = [];
+  flujoTotal = 0;
+  historialRecorridos = [];
+  algoritmoTerminado = false;
+  if (seccionFord) seccionFord.style.display = 'none';
 
   const centroX = 300;
   const centroY = 300;
@@ -95,7 +120,7 @@ function generarRed() {
   dibujarRed();
 }
 
-// Renderiza los nodos, aristas dirigidas y etiquetas de capacidad en el elemento SVG.
+// Renderiza los nodos, aristas dirigidas y etiquetas de flujo/capacidad en el elemento SVG.
 function dibujarRed() {
   const n = posicionesNodos.length;
   const radioNodo = 20;
@@ -172,12 +197,17 @@ function dibujarRed() {
     const grupo = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     grupo.setAttribute('class', 'nodo');
     grupo.setAttribute('id', `nodo-${idNodo}`);
+    grupo.style.cursor = 'pointer';
 
     let color = COLORES[0];
     if (idNodo === nodoFuente) {
       color = COLORES[1];
     } else if (idNodo === nodoSumidero) {
       color = COLORES[2];
+    }
+
+    if (caminoSeleccionado.includes(idNodo)) {
+      color = COLOR_MORADO;
     }
 
     const circulo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -193,6 +223,11 @@ function dibujarRed() {
 
     grupo.appendChild(circulo);
     grupo.appendChild(texto);
+
+    grupo.addEventListener('click', () => {
+      manejarClickNodo(idNodo);
+    });
+
     grupoNodos.appendChild(grupo);
   });
 }
@@ -234,6 +269,7 @@ function conectarArista() {
   }
 
   aristas.push({ origen, destino, peso, flujo: 0 });
+  if (seccionFord) seccionFord.style.display = 'none';
   dibujarRed();
 }
 
@@ -267,6 +303,7 @@ function generarAristasAleatorias() {
     agregarArista(u, v);
   }
 
+  if (seccionFord) seccionFord.style.display = 'none';
   dibujarRed();
 }
 
@@ -332,6 +369,126 @@ function buscarCaminoAumentanteBFS() {
   return camino;
 }
 
+// Maneja la interacción al hacer clic en un nodo para construir el camino de flujo paso a paso.
+function manejarClickNodo(idNodo) {
+  if (seccionFord.style.display !== 'flex') return;
+  if (algoritmoTerminado) return;
+  if (divPreguntaCapacidad.style.display === 'flex') return;
+
+  if (caminoSeleccionado[caminoSeleccionado.length - 1] === idNodo) return;
+
+  caminoSeleccionado.push(idNodo);
+  textoCamino.textContent = caminoSeleccionado.join(' -> ');
+  btnVerificarCamino.disabled = false;
+  dibujarRed();
+}
+
+// Restablece la selección del camino actual y desactiva el botón de verificación.
+function limpiarSeleccionCamino() {
+  caminoSeleccionado = [];
+  textoCamino.textContent = 'Ninguno';
+  btnVerificarCamino.disabled = true;
+  divPreguntaCapacidad.style.display = 'none';
+  dibujarRed();
+}
+
+// Valida que el camino elegido inicie en la fuente, finalice en el sumidero y posea aristas con capacidad disponible.
+function verificarCamino() {
+  if (caminoSeleccionado.length < 2) {
+    mostrarAdvertencia('El camino debe tener al menos 2 nodos.');
+    limpiarSeleccionCamino();
+    return;
+  }
+
+  if (caminoSeleccionado[0] !== nodoFuente) {
+    mostrarAdvertencia(`El camino no es correcto. Debe iniciar en la fuente (${nodoFuente}).`);
+    limpiarSeleccionCamino();
+    return;
+  }
+
+  if (caminoSeleccionado[caminoSeleccionado.length - 1] !== nodoSumidero) {
+    mostrarAdvertencia(`El camino no es correcto. Debe terminar en el sumidero (${nodoSumidero}).`);
+    limpiarSeleccionCamino();
+    return;
+  }
+
+  for (let i = 0; i < caminoSeleccionado.length - 1; i++) {
+    const u = caminoSeleccionado[i];
+    const v = caminoSeleccionado[i + 1];
+    const arista = aristas.find(a => a.origen === u && a.destino === v);
+
+    if (!arista) {
+      mostrarAdvertencia(`El camino no es correcto. No existe una arista del nodo ${u} al nodo ${v}.`);
+      limpiarSeleccionCamino();
+      return;
+    }
+
+    if (arista.peso - arista.flujo <= 0) {
+      mostrarAdvertencia(`El camino no es correcto. La arista del nodo ${u} al nodo ${v} ya no tiene capacidad disponible.`);
+      limpiarSeleccionCamino();
+      return;
+    }
+  }
+
+  divPreguntaCapacidad.style.display = 'flex';
+  inputCapacidadCamino.value = '';
+  inputCapacidadCamino.focus();
+}
+
+// Valida el cuello de botella ingresado por el usuario, incrementa el flujo del camino y comprueba si se llegó al flujo máximo.
+function confirmarCapacidad() {
+  const capIngresada = Number(inputCapacidadCamino.value.trim());
+
+  let cuelloBotella = Infinity;
+  for (let i = 0; i < caminoSeleccionado.length - 1; i++) {
+    const u = caminoSeleccionado[i];
+    const v = caminoSeleccionado[i + 1];
+    const arista = aristas.find(a => a.origen === u && a.destino === v);
+    const residual = arista.peso - arista.flujo;
+    if (residual < cuelloBotella) {
+      cuelloBotella = residual;
+    }
+  }
+
+  if (isNaN(capIngresada) || capIngresada !== cuelloBotella || capIngresada <= 0) {
+    mostrarAdvertencia('La capacidad máxima ingresada no es correcta. Debe ser el cuello de botella (menor capacidad residual) de este camino.');
+    return;
+  }
+
+  for (let i = 0; i < caminoSeleccionado.length - 1; i++) {
+    const u = caminoSeleccionado[i];
+    const v = caminoSeleccionado[i + 1];
+    const arista = aristas.find(a => a.origen === u && a.destino === v);
+    arista.flujo += cuelloBotella;
+  }
+
+  flujoTotal += cuelloBotella;
+  historialRecorridos.push({
+    camino: caminoSeleccionado.join(' -> '),
+    capacidad: cuelloBotella
+  });
+
+  valFlujoTotal.textContent = flujoTotal;
+
+  caminoSeleccionado = [];
+  textoCamino.textContent = 'Ninguno';
+  btnVerificarCamino.disabled = true;
+  divPreguntaCapacidad.style.display = 'none';
+
+  dibujarRed();
+
+  const hayMasCaminos = buscarCaminoAumentanteBFS();
+  if (!hayMasCaminos) {
+    algoritmoTerminado = true;
+    panelFinalFlujo.style.display = 'block';
+    textoResumenFinal.textContent = `Capacidad total del flujo máximo: ${flujoTotal}. Total de recorridos realizados: ${historialRecorridos.length}.`;
+    listaCaminosRecorridos.innerHTML = historialRecorridos.map((r, idx) => `<div><strong>${idx + 1}.</strong> ${r.camino} (+${r.capacidad})</div>`).join('');
+    instruccionFord.textContent = '¡Flujo Máximo Alcanzado! No existen más caminos aumentantes disponibles.';
+  } else {
+    instruccionFord.textContent = `Halla un camino de ${nodoFuente} hacia ${nodoSumidero} (presiona click sobre los nodos)`;
+  }
+}
+
 // Configura los nodos fuente y sumidero tras validar que no existan ciclos y que haya al menos un camino aumentante.
 function aplicarFuenteSumidero() {
   const n = posicionesNodos.length;
@@ -364,13 +521,26 @@ function aplicarFuenteSumidero() {
   nodoSumidero = sumidero;
 
   aristas.forEach(a => a.flujo = 0);
+  flujoTotal = 0;
+  historialRecorridos = [];
+  caminoSeleccionado = [];
+  algoritmoTerminado = false;
 
   const existeCamino = buscarCaminoAumentanteBFS();
   if (!existeCamino) {
     mostrarAdvertencia('No existe ningún camino posible entre la fuente y el sumidero seleccionados.');
+    seccionFord.style.display = 'none';
     dibujarRed();
     return;
   }
+
+  seccionFord.style.display = 'flex';
+  instruccionFord.textContent = `Halla un camino de ${nodoFuente} hacia ${nodoSumidero} (presiona click sobre los nodos)`;
+  textoCamino.textContent = 'Ninguno';
+  btnVerificarCamino.disabled = true;
+  divPreguntaCapacidad.style.display = 'none';
+  panelFinalFlujo.style.display = 'none';
+  valFlujoTotal.textContent = '0';
 
   dibujarRed();
 }
@@ -378,6 +548,9 @@ function aplicarFuenteSumidero() {
 btnConectar.addEventListener('click', conectarArista);
 btnAleatorio.addEventListener('click', generarAristasAleatorias);
 btnAceptarFuenteSumidero.addEventListener('click', aplicarFuenteSumidero);
+btnVerificarCamino.addEventListener('click', verificarCamino);
+btnLimpiarCamino.addEventListener('click', limpiarSeleccionCamino);
+btnConfirmarCapacidad.addEventListener('click', confirmarCapacidad);
 btnAplicar.addEventListener('click', generarRed);
 
 window.addEventListener('DOMContentLoaded', () => {
