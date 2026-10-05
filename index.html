@@ -5,140 +5,160 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Modelo de Red - Algoritmo de Ford-Fulkerson</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
   <aside id="panel-izquierdo">
-    <h1>Flujo Máximo - Algoritmo de Ford-Fulkerson</h1>
-    <hr>
-    <h3>Configuración</h3>
-    <div class="form-group">
-      <label for="num-vertices">Vértices (7-16):</label>
-      <input type="number" id="num-vertices" min="7" max="16" value="7">
-      <button id="btn-aplicar">Aplicar</button>
-    </div>
+    <header class="panel-header">
+      <h1>Flujo Máximo</h1>
+      <p class="subtitulo">Algoritmo de Ford-Fulkerson</p>
+    </header>
 
-    <h3>Aristas</h3>
-    <div class="form-group">
-      <button id="btn-manual">Manual</button>
-      <button id="btn-aleatorio">Aleatorio</button>
-    </div>
+    <!-- Cuadro: Configuración -->
+    <section class="cuadro-seccion">
+      <h3 class="cuadro-titulo">Configuración</h3>
+      <div class="form-group">
+        <label for="num-vertices">Vértices (7-16):</label>
+        <input type="number" id="num-vertices" min="7" max="16" value="7">
+        <button id="btn-aplicar" class="btn btn-primario">Aplicar</button>
+      </div>
+    </section>
 
-    <div id="contenedor-manual">
-      <div class="form-group">
-        <label for="num-nodo-inicial">Nodo Inicial:</label>
-        <input type="number" id="num-nodo-inicial" min="1" max="7" value="1">
+    <!-- Cuadro: Aristas -->
+    <section class="cuadro-seccion">
+      <h3 class="cuadro-titulo">Aristas</h3>
+      <div class="form-group botones-grupo">
+        <button id="btn-manual" class="btn">Manual</button>
+        <button id="btn-aleatorio" class="btn">Aleatorio</button>
       </div>
-      <div class="form-group">
-        <label for="num-nodo-final">Nodo Final:</label>
-        <input type="number" id="num-nodo-final" min="1" max="7" value="2">
-      </div>
-      <div class="form-group">
-        <label for="num-peso">Capacidad (1-9999):</label>
-        <input type="number" id="num-peso" min="1" max="9999" value="1">
-      </div>
-      <div class="form-group">
-        <button id="btn-conectar">Conectar</button>
-      </div>
-    </div>
 
-    <h3>Fuente y Sumidero</h3>
+      <div id="contenedor-manual" class="cuadro-interno">
+        <div class="form-group">
+          <label for="num-nodo-inicial">Nodo Inicial:</label>
+          <input type="number" id="num-nodo-inicial" min="1" max="7" value="1">
+        </div>
+        <div class="form-group">
+          <label for="num-nodo-final">Nodo Final:</label>
+          <input type="number" id="num-nodo-final" min="1" max="7" value="2">
+        </div>
+        <div class="form-group">
+          <label for="num-peso">Capacidad (1-9999):</label>
+          <input type="number" id="num-peso" min="1" max="9999" value="1">
+        </div>
+        <div class="form-group">
+          <button id="btn-conectar" class="btn btn-primario">Conectar</button>
+        </div>
+      </div>
+    </section>
 
-    <div id="contenedor-fuente-sumidero">
-      <div class="form-group">
-        <label for="num-fuente">Fuente:</label>
-        <input type="number" id="num-fuente" min="1" max="7">
+    <!-- Cuadro: Fuente y Sumidero -->
+    <section class="cuadro-seccion">
+      <h3 class="cuadro-titulo">Fuente y Sumidero</h3>
+      <div id="contenedor-fuente-sumidero">
+        <div class="form-group">
+          <label for="num-fuente">Fuente:</label>
+          <input type="number" id="num-fuente" min="1" max="7">
+        </div>
+        <div class="form-group">
+          <label for="num-sumidero">Sumidero:</label>
+          <input type="number" id="num-sumidero" min="1" max="7">
+        </div>
+        <div class="form-group">
+          <button id="btn-aceptar-fuente-sumidero" class="btn btn-primario">Aceptar</button>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="num-sumidero">Sumidero:</label>
-        <input type="number" id="num-sumidero" min="1" max="7">
-      </div>
-      <div class="form-group">
-        <button id="btn-aceptar-fuente-sumidero">Aceptar</button>
-      </div>
-    </div>
+    </section>
 
-    <div id="seccion-ford" style="display: none; flex-direction: column; gap: 10px;">
-      <h3>Algoritmo de Ford-Fulkerson</h3>
-      <p id="instruccion-ford" style="font-size: 14px;">
+    <!-- Cuadro: Algoritmo de Ford-Fulkerson -->
+    <section id="seccion-ford" class="cuadro-seccion" style="display: none;">
+      <h3 class="cuadro-titulo">Algoritmo de Ford-Fulkerson</h3>
+      <p id="instruccion-ford" class="instruccion-texto">
         Halla un camino de Fuente hacia Sumidero (presiona click sobre los nodos)
       </p>
 
-      <div class="form-group">
+      <div class="form-group camino-info">
         <label>Camino:</label>
         <span id="texto-camino">Ninguno</span>
       </div>
 
-      <div class="form-group">
-        <button id="btn-verificar-camino" disabled>Verificar</button>
-        <button id="btn-limpiar-camino">Limpiar</button>
+      <div class="form-group botones-grupo">
+        <button id="btn-verificar-camino" class="btn btn-primario" disabled>Verificar</button>
+        <button id="btn-limpiar-camino" class="btn btn-secundario">Limpiar</button>
       </div>
 
-      <div id="div-pregunta-capacidad" style="display: none;">
+      <div id="div-pregunta-capacidad" class="cuadro-interno" style="display: none;">
         <div class="form-group">
           <label for="input-capacidad-camino">Capacidad:</label>
           <input type="number" id="input-capacidad-camino" min="1">
-          <button id="btn-confirmar-capacidad">Confirmar</button>
+          <button id="btn-confirmar-capacidad" class="btn btn-primario">Confirmar</button>
         </div>
       </div>
 
-      <div class="form-group">
+      <div class="form-group flujo-total-info">
         <label>Flujo Total:</label>
         <span id="val-flujo-total">0</span>
       </div>
 
-      <div id="panel-final-flujo" style="display: none;">
+      <div id="panel-final-flujo" class="cuadro-resultado" style="display: none;">
         <h4>¡Flujo Máximo Alcanzado!</h4>
-        <p id="texto-resumen-final" style="font-size: 14px; margin: 4px 0;"></p>
-        <div id="lista-caminos-recorridos" style="font-size: 14px; max-height: 120px; overflow-y: auto;"></div>
+        <p id="texto-resumen-final"></p>
+        <div id="lista-caminos-recorridos"></div>
       </div>
-    </div>
+    </section>
   </aside>
 
   <main id="panel-derecho">
-    <svg id="svg-red" viewBox="0 0 600 600">
-      <defs>
-        <marker id="flecha-negro" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-          <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#333333" />
-        </marker>
-        <marker id="punto-inicio-negro" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
-          <circle cx="5" cy="5" r="3.5" fill="#333333" />
-        </marker>
+    <div id="canvas-wrapper">
+      <svg id="svg-red" viewBox="0 0 600 600">
+        <defs>
+          <marker id="flecha-negro" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7"
+            orient="auto">
+            <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#333333" />
+          </marker>
+          <marker id="punto-inicio-negro" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
+            <circle cx="5" cy="5" r="3.5" fill="#333333" />
+          </marker>
 
-        <marker id="flecha-verde" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-          <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#2e7d32" />
-        </marker>
-        <marker id="punto-inicio-verde" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
-          <circle cx="5" cy="5" r="3.5" fill="#2e7d32" />
-        </marker>
+          <marker id="flecha-verde" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7"
+            orient="auto">
+            <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#2e7d32" />
+          </marker>
+          <marker id="punto-inicio-verde" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
+            <circle cx="5" cy="5" r="3.5" fill="#2e7d32" />
+          </marker>
 
-        <marker id="flecha-naranja" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7"
-          orient="auto">
-          <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#f57c00" />
-        </marker>
-        <marker id="punto-inicio-naranja" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
-          <circle cx="5" cy="5" r="3.5" fill="#f57c00" />
-        </marker>
+          <marker id="flecha-naranja" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7"
+            orient="auto">
+            <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#f57c00" />
+          </marker>
+          <marker id="punto-inicio-naranja" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
+            <circle cx="5" cy="5" r="3.5" fill="#f57c00" />
+          </marker>
 
-        <marker id="flecha-rojo" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-          <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#c62828" />
-        </marker>
-        <marker id="punto-inicio-rojo" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
-          <circle cx="5" cy="5" r="3.5" fill="#c62828" />
-        </marker>
-      </defs>
-      <g id="grupo-aristas"></g>
-      <g id="grupo-nodos"></g>
-    </svg>
+          <marker id="flecha-rojo" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#c62828" />
+          </marker>
+          <marker id="punto-inicio-rojo" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
+            <circle cx="5" cy="5" r="3.5" fill="#c62828" />
+          </marker>
+        </defs>
+        <g id="grupo-aristas"></g>
+        <g id="grupo-nodos"></g>
+      </svg>
+    </div>
   </main>
 
   <div id="overlay-advertencia">
     <div id="caja-advertencia">
       <h3 id="titulo-advertencia">Advertencia</h3>
       <p id="mensaje-advertencia">Estos datos no se permiten.</p>
-      <button id="btn-cerrar-advertencia">Aceptar</button>
+      <button id="btn-cerrar-advertencia" class="btn btn-primario">Aceptar</button>
     </div>
   </div>
 
