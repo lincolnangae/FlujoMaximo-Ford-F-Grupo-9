@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Modelo de Red - Algoritmo de Ford-Fulkerson</title>
+  <meta name="description" content="Herramienta interactiva para visualizar y resolver problemas de flujo máximo usando el algoritmo de Ford-Fulkerson. Construye grafos, encuentra caminos aumentantes y calcula el flujo óptimo paso a paso.">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,6 +19,9 @@
     <header class="panel-header">
       <h1>Flujo Máximo</h1>
       <p class="subtitulo">Algoritmo de Ford-Fulkerson</p>
+      <button id="btn-tutorial" class="btn btn-tutorial-trigger" title="Abrir tutorial">
+        <span>?</span>
+      </button>
     </header>
 
     <!-- Cuadro: Configuración -->
@@ -111,6 +115,19 @@
         <div id="lista-caminos-recorridos"></div>
       </div>
     </section>
+
+    <!-- Cuadro: Historial Interactivo -->
+    <section id="seccion-historial" class="cuadro-seccion" style="display: none;">
+      <h3 class="cuadro-titulo">Historial de Caminos</h3>
+      <div id="historial-interactivo">
+        <p class="historial-vacio">Aún no se han encontrado caminos.</p>
+      </div>
+      <div class="form-group botones-grupo">
+        <button id="btn-replay-todo" class="btn btn-secundario" disabled>
+          <span class="btn-icon">▶</span> Replay Completo
+        </button>
+      </div>
+    </section>
   </aside>
 
   <main id="panel-derecho">
@@ -152,7 +169,81 @@
         <g id="grupo-nodos"></g>
       </svg>
     </div>
+    <!-- Leyenda Interactiva -->
+    <div id="leyenda-interactiva">
+      <h4 class="leyenda-titulo">Leyenda</h4>
+      <div class="leyenda-items">
+        <div class="leyenda-item" data-tipo="fuente">
+          <span class="leyenda-color" style="background:#2e7d32;"></span>
+          <span>Fuente</span>
+        </div>
+        <div class="leyenda-item" data-tipo="sumidero">
+          <span class="leyenda-color" style="background:#c62828;"></span>
+          <span>Sumidero</span>
+        </div>
+        <div class="leyenda-item" data-tipo="seleccionado">
+          <span class="leyenda-color" style="background:#8e24aa;"></span>
+          <span>Seleccionado</span>
+        </div>
+        <div class="leyenda-item" data-tipo="normal">
+          <span class="leyenda-color" style="background:gray;"></span>
+          <span>Normal</span>
+        </div>
+        <div class="leyenda-separador"></div>
+        <div class="leyenda-item" data-tipo="sin-flujo">
+          <span class="leyenda-linea" style="background:#333333;"></span>
+          <span>Sin flujo</span>
+        </div>
+        <div class="leyenda-item" data-tipo="flujo-bajo">
+          <span class="leyenda-linea" style="background:#2e7d32;"></span>
+          <span>Flujo bajo (≤30%)</span>
+        </div>
+        <div class="leyenda-item" data-tipo="flujo-medio">
+          <span class="leyenda-linea" style="background:#f57c00;"></span>
+          <span>Flujo medio</span>
+        </div>
+        <div class="leyenda-item" data-tipo="saturada">
+          <span class="leyenda-linea" style="background:#c62828;"></span>
+          <span>Saturada (100%)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tooltip para nodos -->
+    <div id="nodo-tooltip" class="nodo-tooltip">
+      <div class="tooltip-header">Nodo <span id="tooltip-nodo-id">-</span></div>
+      <div class="tooltip-body">
+        <div class="tooltip-row"><span class="tooltip-label">Tipo:</span> <span id="tooltip-nodo-tipo">Normal</span></div>
+        <div class="tooltip-row"><span class="tooltip-label">Aristas salientes:</span> <span id="tooltip-nodo-salientes">0</span></div>
+        <div class="tooltip-row"><span class="tooltip-label">Aristas entrantes:</span> <span id="tooltip-nodo-entrantes">0</span></div>
+        <div class="tooltip-row"><span class="tooltip-label">Flujo neto:</span> <span id="tooltip-nodo-flujo">0</span></div>
+      </div>
+    </div>
   </main>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Tutorial Overlay -->
+  <div id="tutorial-overlay">
+    <div id="tutorial-caja">
+      <div class="tutorial-progress">
+        <div id="tutorial-progress-bar" class="tutorial-progress-fill"></div>
+      </div>
+      <div class="tutorial-header">
+        <span id="tutorial-paso-num" class="tutorial-paso-badge">1/5</span>
+        <h3 id="tutorial-titulo">Bienvenido</h3>
+      </div>
+      <p id="tutorial-contenido">Contenido del paso</p>
+      <div class="tutorial-acciones">
+        <button id="btn-tutorial-omitir" class="btn btn-ghost">Omitir tour</button>
+        <div class="tutorial-nav">
+          <button id="btn-tutorial-anterior" class="btn btn-secundario" disabled>← Anterior</button>
+          <button id="btn-tutorial-siguiente" class="btn btn-primario">Siguiente →</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div id="overlay-advertencia">
     <div id="caja-advertencia">

@@ -371,6 +371,7 @@ function buscarCaminoAumentanteBFS() {
 
 // Maneja la interacción al hacer clic en un nodo para construir el camino de flujo paso a paso.
 function manejarClickNodo(idNodo) {
+  if (isDragging) return;
   if (seccionFord.style.display !== 'flex') return;
   if (algoritmoTerminado) return;
   if (divPreguntaCapacidad.style.display === 'flex') return;
@@ -485,7 +486,7 @@ function confirmarCapacidad() {
     listaCaminosRecorridos.innerHTML = historialRecorridos.map((r, idx) => `<div><strong>${idx + 1}.</strong> ${r.camino} (+${r.capacidad})</div>`).join('');
     instruccionFord.textContent = '¡Flujo Máximo Alcanzado! No existen más caminos aumentantes disponibles.';
   } else {
-    instruccionFord.textContent = `Halla un camino de ${nodoFuente} hacia ${nodoSumidero} (presiona click sobre los nodos)`;
+    instruccionFord.textContent = `Halla un camino de ${nodoFuente} hacia ${nodoSumidero} (presiona click sobre los nodos empezando desde la fuente)`;
   }
 }
 
@@ -553,6 +554,443 @@ btnLimpiarCamino.addEventListener('click', limpiarSeleccionCamino);
 btnConfirmarCapacidad.addEventListener('click', confirmarCapacidad);
 btnAplicar.addEventListener('click', generarRed);
 
-window.addEventListener('DOMContentLoaded', () => {
+// SISTEMA DE TOAST NOTIFICATIONS
+const toastContainer = document.getElementById('toast-container');
+
+function mostrarToast(mensaje, tipo = 'info', duracion = 3500) {
+  const iconos = {
+    exito: '✓',
+    info: 'ℹ',
+    aviso: '⚠'
+  };
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${tipo}`;
+  toast.innerHTML = `
+    <span class="toast-icono">${iconos[tipo] || 'ℹ'}</span>
+    <span>${mensaje}</span>
+    <div class="toast-progress"></div>
+  `;
+  toast.style.position = 'relative';
+
+  toast.addEventListener('click', () => {
+    toast.classList.add('toast-exit');
+    setTimeout(() => toast.remove(), 350);
+  });
+
+  toastContainer.appendChild(toast);
+
+  setTimeout(() => {
+    if (toast.parentNode) {
+      toast.classList.add('toast-exit');
+      setTimeout(() => toast.remove(), 350);
+    }
+  }, duracion);
+}
+
+// SISTEMA DE TUTORIAL INTERACTIVO
+const tutorialOverlay = document.getElementById('tutorial-overlay');
+const tutorialTitulo = document.getElementById('tutorial-titulo');
+const tutorialContenido = document.getElementById('tutorial-contenido');
+const tutorialPasoNum = document.getElementById('tutorial-paso-num');
+const tutorialProgressBar = document.getElementById('tutorial-progress-bar');
+const btnTutorialSiguiente = document.getElementById('btn-tutorial-siguiente');
+const btnTutorialAnterior = document.getElementById('btn-tutorial-anterior');
+const btnTutorialOmitir = document.getElementById('btn-tutorial-omitir');
+const btnTutorial = document.getElementById('btn-tutorial');
+
+const pasosTutorial = [
+  {
+    titulo: '¡Bienvenido! 👋',
+    contenido: 'Esta herramienta te permite construir un grafo dirigido y resolver el problema de Flujo Máximo paso a paso usando el algoritmo de Ford-Fulkerson. ¡Sigue este tour para aprender a usarla!'
+  },
+  {
+    titulo: 'Paso 1: Configurar Vértices',
+    contenido: 'Comienza eligiendo la cantidad de vértices (nodos) para tu grafo. Puedes usar entre 7 y 16 nodos. Haz clic en "Aplicar" para generar la disposición circular de los nodos.'
+  },
+  {
+    titulo: 'Paso 2: Añadir Aristas',
+    contenido: 'Usa el modo "Manual" para agregar aristas una por una (nodo inicial → nodo final con capacidad), o usa "Aleatorio" para generar un grafo automáticamente. Las aristas tienen dirección y capacidad máxima.'
+  },
+  {
+    titulo: 'Paso 3: Fuente y Sumidero',
+    contenido: 'Define qué nodo será la Fuente (origen del flujo, verde) y cuál el Sumidero (destino del flujo, rojo). El algoritmo encontrará el flujo máximo posible entre ambos.'
+  },
+  {
+    titulo: 'Paso 4: Encontrar Caminos',
+    contenido: 'Haz clic en los nodos del grafo para trazar un camino desde la Fuente hasta el Sumidero. Luego verifica el camino, ingresa la capacidad (cuello de botella) y repite hasta que no queden caminos aumentantes. ¡Los nodos son arrastrables!'
+  }
+];
+
+let pasoActualTutorial = 0;
+
+function actualizarTutorial() {
+  const paso = pasosTutorial[pasoActualTutorial];
+  tutorialTitulo.textContent = paso.titulo;
+  tutorialContenido.textContent = paso.contenido;
+  tutorialPasoNum.textContent = `${pasoActualTutorial + 1}/${pasosTutorial.length}`;
+  tutorialProgressBar.style.width = `${((pasoActualTutorial + 1) / pasosTutorial.length) * 100}%`;
+
+  btnTutorialAnterior.disabled = pasoActualTutorial === 0;
+  btnTutorialSiguiente.textContent = pasoActualTutorial === pasosTutorial.length - 1 ? '¡Empezar! 🚀' : 'Siguiente →';
+}
+
+function abrirTutorial() {
+  pasoActualTutorial = 0;
+  actualizarTutorial();
+  tutorialOverlay.style.display = 'flex';
+}
+
+function cerrarTutorial() {
+  tutorialOverlay.style.display = 'none';
+  mostrarToast('¡Tutorial completado! Ya puedes empezar.', 'exito');
+}
+
+btnTutorial.addEventListener('click', abrirTutorial);
+
+btnTutorialSiguiente.addEventListener('click', () => {
+  if (pasoActualTutorial < pasosTutorial.length - 1) {
+    pasoActualTutorial++;
+    actualizarTutorial();
+  } else {
+    cerrarTutorial();
+  }
+});
+
+btnTutorialAnterior.addEventListener('click', () => {
+  if (pasoActualTutorial > 0) {
+    pasoActualTutorial--;
+    actualizarTutorial();
+  }
+});
+
+btnTutorialOmitir.addEventListener('click', () => {
+  tutorialOverlay.style.display = 'none';
+});
+
+// TOOLTIPS EN NODOS
+const nodoTooltip = document.getElementById('nodo-tooltip');
+const tooltipNodoId = document.getElementById('tooltip-nodo-id');
+const tooltipNodoTipo = document.getElementById('tooltip-nodo-tipo');
+const tooltipNodoSalientes = document.getElementById('tooltip-nodo-salientes');
+const tooltipNodoEntrantes = document.getElementById('tooltip-nodo-entrantes');
+const tooltipNodoFlujo = document.getElementById('tooltip-nodo-flujo');
+
+function mostrarTooltipNodo(idNodo, eventoMouse) {
+  const salientes = aristas.filter(a => a.origen === idNodo);
+  const entrantes = aristas.filter(a => a.destino === idNodo);
+  const flujoSaliente = salientes.reduce((s, a) => s + a.flujo, 0);
+  const flujoEntrante = entrantes.reduce((s, a) => s + a.flujo, 0);
+
+  let tipo = 'Normal';
+  if (idNodo === nodoFuente) tipo = '🟢 Fuente';
+  else if (idNodo === nodoSumidero) tipo = '🔴 Sumidero';
+
+  tooltipNodoId.textContent = idNodo;
+  tooltipNodoTipo.textContent = tipo;
+  tooltipNodoSalientes.textContent = `${salientes.length} (flujo: ${flujoSaliente})`;
+  tooltipNodoEntrantes.textContent = `${entrantes.length} (flujo: ${flujoEntrante})`;
+  tooltipNodoFlujo.textContent = flujoSaliente - flujoEntrante;
+
+  nodoTooltip.style.display = 'block';
+
+  const tooltipRect = nodoTooltip.getBoundingClientRect();
+  let left = eventoMouse.clientX + 16;
+  let top = eventoMouse.clientY - 10;
+
+  if (left + tooltipRect.width > window.innerWidth) {
+    left = eventoMouse.clientX - tooltipRect.width - 16;
+  }
+  if (top + tooltipRect.height > window.innerHeight) {
+    top = window.innerHeight - tooltipRect.height - 10;
+  }
+
+  nodoTooltip.style.left = left + 'px';
+  nodoTooltip.style.top = top + 'px';
+}
+
+function ocultarTooltipNodo() {
+  nodoTooltip.style.display = 'none';
+}
+
+// DRAG & DROP DE NODOS
+let nodoDragIndex = null;
+let isDragging = false;
+let dragStartPos = null;
+
+function getSVGPoint(evt) {
+  const svgEl = document.getElementById('svg-red');
+  const pt = svgEl.createSVGPoint();
+  const ctm = svgEl.getScreenCTM().inverse();
+  pt.x = evt.clientX;
+  pt.y = evt.clientY;
+  return pt.matrixTransform(ctm);
+}
+
+svgRed.addEventListener('mousedown', (e) => {
+  const nodoEl = e.target.closest('.nodo');
+  if (!nodoEl) return;
+  const id = parseInt(nodoEl.id.replace('nodo-', ''));
+  nodoDragIndex = id - 1;
+  isDragging = false;
+  dragStartPos = { x: e.clientX, y: e.clientY };
+  nodoEl.classList.add('nodo-dragging');
+  e.preventDefault();
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (nodoDragIndex === null) return;
+
+  if (!isDragging && dragStartPos) {
+    const dx = Math.abs(e.clientX - dragStartPos.x);
+    const dy = Math.abs(e.clientY - dragStartPos.y);
+    if (dx > 4 || dy > 4) {
+      isDragging = true;
+    }
+  }
+
+  if (!isDragging) return;
+
+  const svgPoint = getSVGPoint(e);
+  posicionesNodos[nodoDragIndex].x = Math.max(25, Math.min(575, svgPoint.x));
+  posicionesNodos[nodoDragIndex].y = Math.max(25, Math.min(575, svgPoint.y));
+  dibujarRed();
+
+  const nodoEl = document.getElementById(`nodo-${nodoDragIndex + 1}`);
+  if (nodoEl) nodoEl.classList.add('nodo-dragging');
+
+  ocultarTooltipNodo();
+});
+
+document.addEventListener('mouseup', (e) => {
+  if (nodoDragIndex !== null) {
+    const nodoEl = document.getElementById(`nodo-${nodoDragIndex + 1}`);
+    if (nodoEl) nodoEl.classList.remove('nodo-dragging');
+    nodoDragIndex = null;
+    isDragging = false;
+    dragStartPos = null;
+  }
+});
+
+// HISTORIAL INTERACTIVO
+const seccionHistorial = document.getElementById('seccion-historial');
+const historialInteractivo = document.getElementById('historial-interactivo');
+const btnReplayTodo = document.getElementById('btn-replay-todo');
+
+function actualizarHistorialInteractivo() {
+  if (historialRecorridos.length === 0) {
+    seccionHistorial.style.display = 'none';
+    return;
+  }
+
+  seccionHistorial.style.display = 'flex';
+  historialInteractivo.innerHTML = '';
+
+  historialRecorridos.forEach((rec, idx) => {
+    const item = document.createElement('div');
+    item.className = 'historial-item';
+    item.innerHTML = `
+      <span class="historial-num">${idx + 1}</span>
+      <div class="historial-detalle">
+        <span class="historial-camino">${rec.camino}</span>
+        <span class="historial-capacidad">+${rec.capacidad} unidades de flujo</span>
+      </div>
+      <button class="btn historial-replay-btn" title="Reproducir este camino">▶</button>
+    `;
+
+    item.addEventListener('mouseenter', () => {
+      const nodos = rec.camino.split(' -> ').map(Number);
+      highlightNodosEnSVG(nodos);
+      item.classList.add('historial-active');
+    });
+
+    item.addEventListener('mouseleave', () => {
+      clearHighlightNodos();
+      item.classList.remove('historial-active');
+    });
+
+    const replayBtn = item.querySelector('.historial-replay-btn');
+    replayBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const nodos = rec.camino.split(' -> ').map(Number);
+      replayPath(nodos);
+    });
+
+    historialInteractivo.appendChild(item);
+  });
+
+  btnReplayTodo.disabled = historialRecorridos.length === 0;
+}
+
+function highlightNodosEnSVG(nodos) {
+  nodos.forEach(idNodo => {
+    const el = document.getElementById(`nodo-${idNodo}`);
+    if (el) {
+      const circulo = el.querySelector('circle');
+      if (circulo) circulo.setAttribute('fill', COLOR_MORADO);
+    }
+  });
+}
+
+function clearHighlightNodos() {
+  dibujarRed();
+}
+
+async function replayPath(nodos) {
+  caminoSeleccionado = [];
+  dibujarRed();
+
+  for (let i = 0; i < nodos.length; i++) {
+    caminoSeleccionado.push(nodos[i]);
+    dibujarRed();
+    await sleep(400);
+  }
+
+  mostrarToast(`Camino ${nodos.join(' → ')} reproducido`, 'info');
+
+  setTimeout(() => {
+    caminoSeleccionado = [];
+    dibujarRed();
+  }, 1500);
+}
+
+async function replayTodo() {
+  btnReplayTodo.disabled = true;
+  mostrarToast('Reproduciendo todos los caminos...', 'info');
+
+  for (let i = 0; i < historialRecorridos.length; i++) {
+    const nodos = historialRecorridos[i].camino.split(' -> ').map(Number);
+    await replayPath(nodos);
+    await sleep(600);
+  }
+
+  btnReplayTodo.disabled = false;
+  mostrarToast('Replay completo finalizado', 'exito');
+}
+
+btnReplayTodo.addEventListener('click', replayTodo);
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// LEYENDA INTERACTIVA
+document.querySelectorAll('.leyenda-item').forEach(item => {
+  item.addEventListener('mouseenter', () => {
+    item.classList.add('leyenda-highlight');
+  });
+  item.addEventListener('mouseleave', () => {
+    item.classList.remove('leyenda-highlight');
+  });
+});
+
+// HOOKS
+const _originalDibujarRed = dibujarRed;
+
+const observerNodos = new MutationObserver(() => {
+  document.querySelectorAll('.nodo').forEach(nodoEl => {
+    nodoEl.addEventListener('mouseenter', (e) => {
+      if (isDragging) return;
+      const id = parseInt(nodoEl.id.replace('nodo-', ''));
+      mostrarTooltipNodo(id, e);
+    });
+    nodoEl.addEventListener('mousemove', (e) => {
+      if (isDragging) return;
+      const id = parseInt(nodoEl.id.replace('nodo-', ''));
+      mostrarTooltipNodo(id, e);
+    });
+    nodoEl.addEventListener('mouseleave', ocultarTooltipNodo);
+
+    // Add clickable pulse when Ford-Fulkerson is active
+    if (seccionFord.style.display === 'flex' && !algoritmoTerminado) {
+      nodoEl.classList.add('nodo-clickable');
+    }
+  });
+});
+
+observerNodos.observe(grupoNodos, { childList: true });
+
+// Hook into conectarArista for toast
+const _originalConectarArista = conectarArista;
+
+// Override the click handler's wrapper
+btnConectar.removeEventListener('click', _originalConectarArista);
+btnConectar.addEventListener('click', () => {
+  const prevLen = aristas.length;
+  conectarArista();
+  if (aristas.length > prevLen) {
+    const a = aristas[aristas.length - 1];
+    mostrarToast(`Arista ${a.origen} → ${a.destino} (cap: ${a.peso}) añadida`, 'exito');
+  }
+});
+
+// Hook into generarAristasAleatorias for toast
+btnAleatorio.removeEventListener('click', generarAristasAleatorias);
+btnAleatorio.addEventListener('click', () => {
+  generarAristasAleatorias();
+  mostrarToast(`${aristas.length} aristas generadas aleatoriamente`, 'info');
+});
+
+// Hook into aplicarFuenteSumidero for toast and historial
+const _originalAplicarFuenteSumidero = aplicarFuenteSumidero;
+btnAceptarFuenteSumidero.removeEventListener('click', _originalAplicarFuenteSumidero);
+btnAceptarFuenteSumidero.addEventListener('click', () => {
+  const prevDisplay = seccionFord.style.display;
+  aplicarFuenteSumidero();
+  if (seccionFord.style.display === 'flex' && prevDisplay !== 'flex') {
+    mostrarToast(`Fuente: ${nodoFuente}, Sumidero: ${nodoSumidero} configurados`, 'exito');
+  }
+  actualizarHistorialInteractivo();
+});
+
+// Hook into confirmarCapacidad for toast and historial update
+const _originalConfirmarCapacidad = confirmarCapacidad;
+btnConfirmarCapacidad.removeEventListener('click', _originalConfirmarCapacidad);
+btnConfirmarCapacidad.addEventListener('click', () => {
+  const prevLen = historialRecorridos.length;
+  confirmarCapacidad();
+  if (historialRecorridos.length > prevLen) {
+    const ultimo = historialRecorridos[historialRecorridos.length - 1];
+    mostrarToast(`Camino encontrado: +${ultimo.capacidad} flujo`, 'exito');
+    actualizarHistorialInteractivo();
+  }
+  if (algoritmoTerminado) {
+    mostrarToast(`¡Flujo máximo alcanzado: ${flujoTotal}!`, 'exito', 5000);
+  }
+});
+
+// Hook into generarRed for historial reset
+const _originalGenerarRed = generarRed;
+btnAplicar.removeEventListener('click', _originalGenerarRed);
+btnAplicar.addEventListener('click', () => {
   generarRed();
+  actualizarHistorialInteractivo();
+  if (posicionesNodos.length > 0) {
+    mostrarToast(`Red generada con ${posicionesNodos.length} nodos`, 'info');
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (tutorialOverlay.style.display === 'flex') {
+      tutorialOverlay.style.display = 'none';
+    }
+  }
+
+  if (e.ctrlKey && e.key === 'z') {
+    if (caminoSeleccionado.length > 0 && seccionFord.style.display === 'flex' && !algoritmoTerminado) {
+      caminoSeleccionado.pop();
+      textoCamino.textContent = caminoSeleccionado.length > 0 ? caminoSeleccionado.join(' -> ') : 'Ninguno';
+      btnVerificarCamino.disabled = caminoSeleccionado.length === 0;
+      dibujarRed();
+      mostrarToast('Último nodo removido del camino', 'info');
+      e.preventDefault();
+    }
+  }
+
+  if (e.key === '?' && !e.ctrlKey && !e.metaKey) {
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) return;
+    abrirTutorial();
+  }
 });
