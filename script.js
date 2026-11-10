@@ -51,13 +51,6 @@ const seccionHistorial = document.getElementById('seccion-historial');
 const historialInteractivo = document.getElementById('historial-interactivo');
 const btnReplayTodo = document.getElementById('btn-replay-todo');
 
-const nodoTooltip = document.getElementById('nodo-tooltip');
-const tooltipNodoId = document.getElementById('tooltip-nodo-id');
-const tooltipNodoTipo = document.getElementById('tooltip-nodo-tipo');
-const tooltipNodoSalientes = document.getElementById('tooltip-nodo-salientes');
-const tooltipNodoEntrantes = document.getElementById('tooltip-nodo-entrantes');
-const tooltipNodoFlujo = document.getElementById('tooltip-nodo-flujo');
-
 const toastContainer = document.getElementById('toast-container');
 const tutorialOverlay = document.getElementById('tutorial-overlay');
 const tutorialTitulo = document.getElementById('tutorial-titulo');
@@ -1303,7 +1296,6 @@ document.addEventListener('mousemove', (e) => {
     const el = document.getElementById(`nodo-${nodoDragId}`);
     if (el) el.classList.add('nodo-dragging');
   }
-  ocultarTooltipNodo();
 });
 
 document.addEventListener('mouseup', () => {
@@ -1316,44 +1308,7 @@ document.addEventListener('mouseup', () => {
   }
 });
 
-// Presenta el tooltip flotante con la información topológica y flujo neto del nodo.
-function mostrarTooltipNodo(idNodo, eventoMouse) {
-  const nodoObj = obtenerNodo(idNodo);
-  if (!nodoObj) return;
-
-  const salientes = aristas.filter(a => String(a.origen) === String(idNodo));
-  const entrantes = aristas.filter(a => String(a.destino) === String(idNodo));
-  const flujoSaliente = salientes.reduce((s, a) => s + (a.flujo || 0), 0);
-  const flujoEntrante = entrantes.reduce((s, a) => s + (a.flujo || 0), 0);
-
-  let tipo = 'Normal';
-  if (nodoObj.isFictitious) tipo = nodoObj.id === 'S' ? 'Fuente Ficticia (S)' : 'Sumidero Ficticio (T)';
-  else if (String(idNodo) === String(nodoFuente)) tipo = 'Fuente';
-  else if (String(idNodo) === String(nodoSumidero)) tipo = 'Sumidero';
-
-  tooltipNodoId.textContent = idNodo;
-  tooltipNodoTipo.textContent = tipo;
-  tooltipNodoSalientes.textContent = `${salientes.length} (flujo: ${flujoSaliente})`;
-  tooltipNodoEntrantes.textContent = `${entrantes.length} (flujo: ${flujoEntrante})`;
-  tooltipNodoFlujo.textContent = flujoSaliente - flujoEntrante;
-  nodoTooltip.style.display = 'block';
-
-  const tooltipRect = nodoTooltip.getBoundingClientRect();
-  let left = eventoMouse.clientX + 16;
-  let top = eventoMouse.clientY - 10;
-  if (left + tooltipRect.width > window.innerWidth) left = eventoMouse.clientX - tooltipRect.width - 16;
-  if (top + tooltipRect.height > window.innerHeight) top = window.innerHeight - tooltipRect.height - 10;
-
-  nodoTooltip.style.left = `${left}px`;
-  nodoTooltip.style.top = `${top}px`;
-}
-
-// Oculta el tooltip informativo del nodo.
-function ocultarTooltipNodo() {
-  nodoTooltip.style.display = 'none';
-}
-
-// Renderiza en la interfaz la lista de caminos aumentantes recorridos con soporte de replay.
+// Renderiza en la interfaz la lista de caminos aumentantes recorridos.
 function actualizarHistorialInteractivo() {
   if (historialRecorridos.length === 0) {
     seccionHistorial.style.display = 'none';
@@ -1371,7 +1326,6 @@ function actualizarHistorialInteractivo() {
         <span class="historial-camino">${rec.camino}</span>
         <span class="historial-capacidad">+${rec.capacidad} unidades</span>
       </div>
-      <button class="btn historial-replay-btn" title="Reproducir este camino">▶</button>
     `;
 
     item.addEventListener('mouseenter', () => {
@@ -1388,11 +1342,6 @@ function actualizarHistorialInteractivo() {
     item.addEventListener('mouseleave', () => {
       dibujarRed();
       item.classList.remove('historial-active');
-    });
-
-    item.querySelector('.historial-replay-btn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      replayPath(rec.camino.split(' -> '));
     });
 
     historialInteractivo.appendChild(item);
@@ -1505,10 +1454,6 @@ btnTutorialOmitir.addEventListener('click', () => {
 
 const observerNodos = new MutationObserver(() => {
   document.querySelectorAll('.nodo').forEach(nodoEl => {
-    const id = nodoEl.getAttribute('data-nodo-id') || nodoEl.id.replace('nodo-', '');
-    nodoEl.addEventListener('mouseenter', (e) => { if (!isDragging) mostrarTooltipNodo(id, e); });
-    nodoEl.addEventListener('mousemove', (e) => { if (!isDragging) mostrarTooltipNodo(id, e); });
-    nodoEl.addEventListener('mouseleave', ocultarTooltipNodo);
     if (seccionFord.style.display === 'flex' && !algoritmoTerminado) nodoEl.classList.add('nodo-clickable');
   });
 });

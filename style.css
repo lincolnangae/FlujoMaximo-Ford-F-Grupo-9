@@ -601,53 +601,6 @@ svg {
   to { width: 0%; }
 }
 
-/* --- Node Tooltip --- */
-.nodo-tooltip {
-  display: none;
-  position: fixed;
-  background: #0f172a;
-  color: #e2e8f0;
-  border-radius: 10px;
-  padding: 0;
-  min-width: 200px;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
-  z-index: 1500;
-  pointer-events: none;
-  overflow: hidden;
-  animation: tooltipIn 0.2s ease;
-}
-
-@keyframes tooltipIn {
-  from { transform: scale(0.92); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-.tooltip-header {
-  padding: 8px 14px;
-  background: linear-gradient(135deg, #1e293b, #334155);
-  font-weight: 700;
-  font-size: 14px;
-  color: #fff;
-}
-
-.tooltip-body {
-  padding: 10px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.tooltip-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12.5px;
-}
-
-.tooltip-label {
-  color: #94a3b8;
-  font-weight: 500;
-}
-
 /* --- Leyenda Interactiva --- */
 #leyenda-interactiva {
   position: absolute;
@@ -875,38 +828,21 @@ svg {
   font-weight: 600;
 }
 
-.historial-replay-btn {
-  width: 26px;
-  height: 26px;
-  padding: 0 !important;
-  border-radius: 50% !important;
-  font-size: 11px !important;
-  background: #ede9fe !important;
-  border-color: #c4b5fd !important;
-  color: #7c3aed !important;
-  flex-shrink: 0;
-}
-
-.historial-replay-btn:hover {
-  background: #ddd6fe !important;
-}
-
 .btn-icon {
   font-size: 12px;
 }
 
 /* --- Drag visual feedback --- */
 .nodo-dragging circle {
-  filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.6));
-  transition: filter 0.15s ease;
+  filter: none;
 }
 
 .nodo circle {
-  transition: fill 0.2s ease, filter 0.2s ease, r 0.15s ease;
+  transition: fill 0.2s ease, r 0.15s ease;
 }
 
 .nodo:hover circle {
-  filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.2));
+  filter: none;
 }
 
 /* --- Pulse Animation for clickable nodos --- */
