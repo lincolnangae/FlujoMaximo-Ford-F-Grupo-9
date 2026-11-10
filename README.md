@@ -6,6 +6,8 @@
 ![SVG](https://img.shields.io/badge/SVG-Vector_Graphics-FFB13B?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)
 
+https://flujo-maximo-sem7-grupo-9.netlify.app/
+
 Una herramienta web interactiva y pedagógica desarrollada en **JavaScript Vanilla**, **HTML5** y **SVG** para modelar redes de transporte, configurar fuentes y sumideros, y resolver problemas de **Flujo Máximo** paso a paso mediante el **Algoritmo de Ford-Fulkerson**.
 
 ---

@@ -320,7 +320,8 @@ function analizarGradosRedBase() {
     if (indeg === 0 && outdeg > 0) fuentes.push(n.id);
     else if (outdeg === 0 && indeg > 0) sumideros.push(n.id);
     else if (indeg === 0 && outdeg === 0) aislados.push(n.id);
-    if (indeg > 0 && outdeg === 0 && String(nodoSumidero) !== sId && nodoSumidero !== 'T') {
+    const estaConectadoAT = nodoSumidero === 'T' && aristas.some(a => String(a.origen) === sId && String(a.destino) === 'T');
+    if (indeg > 0 && outdeg === 0 && String(nodoSumidero) !== sId && !estaConectadoAT) {
       callejones.push(n.id);
     }
   });
@@ -417,15 +418,29 @@ function validarRed() {
     errores.push(`Nodo [${id}] aislado: no posee aristas incidentes ni salientes.`);
   });
 
+  const aisladosSet = new Set(analisis.aislados.map(String));
+
   const tieneSFicticio = posicionesNodos.some(n => n.id === 'S');
   const tieneTFicticio = posicionesNodos.some(n => n.id === 'T');
 
   if (!tieneSFicticio && analisis.fuentes.length >= 2) {
-    errores.push(`Existen múltiples fuentes independientes sin conectar entre sí: [${analisis.fuentes.join(', ')}]. Presiona "Unir Fuentes (S / T)" para crear una Fuente Ficticia (S).`);
+    errores.push(`Existen múltiples fuentes independientes sin conectar entre sí: [${analisis.fuentes.join(', ')}]. Presiona "Unir Nodos Ficticios" para crear una Fuente Ficticia (S).`);
+  } else if (tieneSFicticio) {
+    const fuentesConectadas = new Set(aristas.filter(a => String(a.origen) === 'S').map(a => String(a.destino)));
+    const fuentesSinS = analisis.fuentes.filter(fId => !fuentesConectadas.has(String(fId)));
+    if (fuentesSinS.length > 0) {
+      errores.push(`Fuentes desvinculadas: [${fuentesSinS.join(', ')}] no están conectadas desde la Fuente Ficticia (S). Presiona "Unir Nodos Ficticios" para reconectarlas.`);
+    }
   }
 
   if (!tieneTFicticio && analisis.sumideros.length >= 2) {
-    errores.push(`Existen múltiples sumideros independientes sin conectar entre sí: [${analisis.sumideros.join(', ')}]. Presiona "Unir Fuentes (S / T)" para crear un Sumidero Ficticio (T).`);
+    errores.push(`Existen múltiples sumideros independientes sin conectar entre sí: [${analisis.sumideros.join(', ')}]. Presiona "Unir Nodos Ficticios" para crear un Sumidero Ficticio (T).`);
+  } else if (tieneTFicticio) {
+    const sumiderosConectados = new Set(aristas.filter(a => String(a.destino) === 'T').map(a => String(a.origen)));
+    const sumiderosSinT = analisis.sumideros.filter(sId => !sumiderosConectados.has(String(sId)));
+    if (sumiderosSinT.length > 0) {
+      errores.push(`Sumideros desvinculados: [${sumiderosSinT.join(', ')}] no están conectados al Sumidero Ficticio (T). Presiona "Unir Nodos Ficticios" para reconectarlos.`);
+    }
   }
 
   if (fVal === '' || nodoFuente === null) {
@@ -444,42 +459,40 @@ function validarRed() {
         errores.push('No existe trayectoria entre la fuente y el sumidero.');
       }
 
-      if (!tieneSFicticio) {
-        const visitadosDesdeFuente = new Set([String(nodoFuente)]);
-        const qF = [nodoFuente];
-        while (qF.length > 0) {
-          const u = qF.shift();
-          aristas.filter(a => String(a.origen) === String(u)).forEach(a => {
-            const dest = String(a.destino);
-            if (!visitadosDesdeFuente.has(dest)) {
-              visitadosDesdeFuente.add(dest);
-              qF.push(a.destino);
-            }
-          });
-        }
-        const inalcanzables = nodosReales.filter(n => String(n.id) !== String(nodoFuente) && !visitadosDesdeFuente.has(String(n.id))).map(n => n.id);
-        if (inalcanzables.length > 0) {
-          errores.push(`Nodos sin conexión desde la fuente: [${inalcanzables.join(', ')}] no pueden ser alcanzados desde el nodo ${nodoFuente}. No hay caminos que puedan ir de unos nodos a otros.`);
-        }
+      // Conectividad hacia adelante: todos los nodos reales (no aislados) deben ser alcanzables desde la fuente
+      const visitadosDesdeFuente = new Set([String(nodoFuente)]);
+      const qF = [nodoFuente];
+      while (qF.length > 0) {
+        const u = qF.shift();
+        aristas.filter(a => String(a.origen) === String(u)).forEach(a => {
+          const dest = String(a.destino);
+          if (!visitadosDesdeFuente.has(dest)) {
+            visitadosDesdeFuente.add(dest);
+            qF.push(a.destino);
+          }
+        });
+      }
+      const inalcanzables = nodosReales.filter(n => String(n.id) !== String(nodoFuente) && !aisladosSet.has(String(n.id)) && !visitadosDesdeFuente.has(String(n.id))).map(n => n.id);
+      if (inalcanzables.length > 0) {
+        errores.push(`Nodos sin conexión desde la fuente: [${inalcanzables.join(', ')}] no pueden ser alcanzados desde el nodo ${nodoFuente}. No hay caminos que puedan ir de unos nodos a otros.`);
       }
 
-      if (!tieneTFicticio) {
-        const visitadosHaciaSumidero = new Set([String(nodoSumidero)]);
-        const qS = [nodoSumidero];
-        while (qS.length > 0) {
-          const u = qS.shift();
-          aristas.filter(a => String(a.destino) === String(u)).forEach(a => {
-            const orig = String(a.origen);
-            if (!visitadosHaciaSumidero.has(orig)) {
-              visitadosHaciaSumidero.add(orig);
-              qS.push(a.origen);
-            }
-          });
-        }
-        const sinSalida = nodosReales.filter(n => String(n.id) !== String(nodoSumidero) && !visitadosHaciaSumidero.has(String(n.id))).map(n => n.id);
-        if (sinSalida.length > 0) {
-          errores.push(`Callejones sin salida: [${sinSalida.join(', ')}] no tienen camino hacia el sumidero ${nodoSumidero}.`);
-        }
+      // Conectividad hacia atrás: todos los nodos reales (no aislados) deben tener camino hacia el sumidero
+      const visitadosHaciaSumidero = new Set([String(nodoSumidero)]);
+      const qS = [nodoSumidero];
+      while (qS.length > 0) {
+        const u = qS.shift();
+        aristas.filter(a => String(a.destino) === String(u)).forEach(a => {
+          const orig = String(a.origen);
+          if (!visitadosHaciaSumidero.has(orig)) {
+            visitadosHaciaSumidero.add(orig);
+            qS.push(a.origen);
+          }
+        });
+      }
+      const sinSalida = nodosReales.filter(n => String(n.id) !== String(nodoSumidero) && !aisladosSet.has(String(n.id)) && !visitadosHaciaSumidero.has(String(n.id))).map(n => n.id);
+      if (sinSalida.length > 0) {
+        errores.push(`Callejones sin salida: [${sinSalida.join(', ')}] no tienen camino hacia el sumidero ${nodoSumidero}.`);
       }
     }
   }
