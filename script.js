@@ -68,6 +68,8 @@ const btnTutorialSiguiente = document.getElementById('btn-tutorial-siguiente');
 const btnTutorialAnterior = document.getElementById('btn-tutorial-anterior');
 const btnTutorialOmitir = document.getElementById('btn-tutorial-omitir');
 const btnTutorial = document.getElementById('btn-tutorial');
+const leyendaInteractiva = document.getElementById('leyenda-interactiva');
+const btnToggleLeyenda = document.getElementById('btn-toggle-leyenda');
 
 let numVerticesBase = 7;
 let posicionesNodos = [];
@@ -120,6 +122,14 @@ function ocultarAdvertencia() {
 btnCerrarAdvertencia.addEventListener('click', ocultarAdvertencia);
 btnManual.addEventListener('click', () => {
   contenedorManual.style.display = contenedorManual.style.display === 'flex' ? 'none' : 'flex';
+});
+
+btnToggleLeyenda.addEventListener('click', () => {
+  const estaColapsada = leyendaInteractiva.classList.toggle('leyenda-colapsada');
+  btnToggleLeyenda.setAttribute('aria-expanded', String(!estaColapsada));
+  const accion = estaColapsada ? 'Maximizar' : 'Minimizar';
+  btnToggleLeyenda.setAttribute('title', `${accion} leyenda`);
+  btnToggleLeyenda.querySelector('.sr-only').textContent = `${accion} leyenda`;
 });
 
 // Localiza si existe una trayectoria dirigida desde inicio hasta fin mediante búsqueda en anchura (BFS).

@@ -663,9 +663,20 @@ svg {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+#leyenda-interactiva.leyenda-colapsada {
+  padding: 8px 10px;
+}
+
 #leyenda-interactiva:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   transform: translateY(-2px);
+}
+
+.leyenda-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .leyenda-titulo {
@@ -674,13 +685,71 @@ svg {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: #64748b;
-  margin-bottom: 10px;
+  margin: 0;
+}
+
+.btn-toggle-leyenda {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-toggle-leyenda:hover,
+.btn-toggle-leyenda:focus-visible {
+  background: #f1f5f9;
+  color: #334155;
+  outline: none;
+}
+
+.leyenda-flecha {
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+  transform: translateY(2px) rotate(45deg);
+  transition: transform 0.2s ease;
+}
+
+.leyenda-colapsada .leyenda-flecha {
+  transform: translateY(-2px) rotate(225deg);
 }
 
 .leyenda-items {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  margin-top: 10px;
+  overflow: hidden;
+  transition: max-height 0.2s ease, opacity 0.2s ease, margin-top 0.2s ease;
+  max-height: 400px;
+  opacity: 1;
+}
+
+.leyenda-colapsada .leyenda-items {
+  max-height: 0;
+  margin-top: 0;
+  opacity: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .leyenda-item {
@@ -1006,4 +1075,3 @@ svg {
   line-height: 1.55;
   color: #14532d;
 }
-

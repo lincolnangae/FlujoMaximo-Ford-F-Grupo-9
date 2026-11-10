@@ -195,8 +195,15 @@
     </div>
     <!-- Leyenda Interactiva -->
     <div id="leyenda-interactiva">
-      <h4 class="leyenda-titulo">Leyenda</h4>
-      <div class="leyenda-items">
+      <div class="leyenda-encabezado">
+        <h4 class="leyenda-titulo">Leyenda</h4>
+        <button id="btn-toggle-leyenda" class="btn-toggle-leyenda" type="button" aria-expanded="true"
+          aria-controls="leyenda-items" title="Minimizar leyenda">
+          <span class="leyenda-flecha" aria-hidden="true"></span>
+          <span class="sr-only">Minimizar leyenda</span>
+        </button>
+      </div>
+      <div id="leyenda-items" class="leyenda-items">
         <div class="leyenda-item" data-tipo="fuente">
           <span class="leyenda-color" style="background:#2e7d32;"></span>
           <span>Fuente</span>
